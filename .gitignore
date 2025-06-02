@@ -1,6 +1,12 @@
 # The virtual environment directory
 *venv*
 
+# Jupyter notebooks
+*.ipynb
+
+# Dataset
+data/
+
 # OS generated files
 **/.DS_Store
 
