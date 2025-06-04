@@ -7,6 +7,9 @@
 # Dataset
 data/
 
+# Temporarily ignored files
+src/train.py
+
 # OS generated files
 **/.DS_Store
 
