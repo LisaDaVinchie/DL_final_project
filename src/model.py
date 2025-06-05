@@ -6,6 +6,11 @@ class UNet(nn.Module):
     def __init__(self):
         super(UNet, self).__init__()
         
+        self.e_filters = [3, 64, 128, 256, 512, 512, 512, 512, 512]
+        self.e_kernels = [7, 5, 5, 3, 3, 3, 3, 3]
+        self.d_filters = [512, 512, 512, 512, 256, 128, 64, 3, 3]
+        self.d_kernels = [3, 3, 3, 3, 3, 3, 3, 3, 1]
+        
         self.layer_setup()
         self.print_shapes = True  # Set to True to print shapes during forward pass
 
@@ -14,32 +19,24 @@ class UNet(nn.Module):
             print(f"{name} shape: {tensor.shape}")
     
     def layer_setup(self):
-        e_filters = [3, 64, 128, 256, 512, 512, 512, 512, 512]
-        e_kernels = [7, 5, 5, 3, 3, 3, 3, 3]
-        self.enc1 = EncoderLayer(in_filters=e_filters[0], out_filters=e_filters[1], kernel_size=e_kernels[0], bn=False)
-        self.enc2 = EncoderLayer(in_filters=e_filters[1], out_filters=e_filters[2], kernel_size=e_kernels[1])
-        self.enc3 = EncoderLayer(in_filters=e_filters[2], out_filters=e_filters[3], kernel_size=e_kernels[2])
-        self.enc4 = EncoderLayer(in_filters=e_filters[3], out_filters=e_filters[4], kernel_size=e_kernels[3])
-        self.enc5 = EncoderLayer(in_filters=e_filters[4], out_filters=e_filters[5], kernel_size=e_kernels[4])
-        self.enc6 = EncoderLayer(in_filters=e_filters[5], out_filters=e_filters[6], kernel_size=e_kernels[5])
-        self.enc7 = EncoderLayer(in_filters=e_filters[6], out_filters=e_filters[7], kernel_size=e_kernels[6])
-        self.enc8 = EncoderLayer(in_filters=e_filters[7], out_filters=e_filters[8], kernel_size=e_kernels[7])
+        self.enc1 = EncoderLayer(in_filters=self.e_filters[0], out_filters=self.e_filters[1], kernel_size=self.e_kernels[0], bn=False)
+        self.enc2 = EncoderLayer(in_filters=self.e_filters[1], out_filters=self.e_filters[2], kernel_size=self.e_kernels[1])
+        self.enc3 = EncoderLayer(in_filters=self.e_filters[2], out_filters=self.e_filters[3], kernel_size=self.e_kernels[2])
+        self.enc4 = EncoderLayer(in_filters=self.e_filters[3], out_filters=self.e_filters[4], kernel_size=self.e_kernels[3])
+        self.enc5 = EncoderLayer(in_filters=self.e_filters[4], out_filters=self.e_filters[5], kernel_size=self.e_kernels[4])
+        self.enc6 = EncoderLayer(in_filters=self.e_filters[5], out_filters=self.e_filters[6], kernel_size=self.e_kernels[5])
+        self.enc7 = EncoderLayer(in_filters=self.e_filters[6], out_filters=self.e_filters[7], kernel_size=self.e_kernels[6])
+        self.enc8 = EncoderLayer(in_filters=self.e_filters[7], out_filters=self.e_filters[8], kernel_size=self.e_kernels[7])
         
-        d_filters = [512, 512, 512,
-                     512, 256, 128,
-                     64, 3, 3]
-        d_kernels = [3, 3, 3,
-                     3, 3, 3,
-                     3, 3, 1]
-        self.dec9 = DecoderLayer(in_filters=e_filters[8] + e_filters[7], out_filters=d_filters[0], kernel_size=d_kernels[0])
-        self.dec10 = DecoderLayer(in_filters=d_filters[0] + e_filters[6], out_filters=d_filters[1], kernel_size=d_kernels[1])
-        self.dec11 = DecoderLayer(in_filters=d_filters[1] + e_filters[5], out_filters=d_filters[2], kernel_size=d_kernels[2])
-        self.dec12 = DecoderLayer(in_filters=d_filters[2] + e_filters[4], out_filters=d_filters[3], kernel_size=d_kernels[3])
-        self.dec13 = DecoderLayer(in_filters=d_filters[3] + e_filters[3], out_filters=d_filters[4], kernel_size=d_kernels[4])
-        self.dec14 = DecoderLayer(in_filters=d_filters[4] + e_filters[2], out_filters=d_filters[5], kernel_size=d_kernels[5])
-        self.dec15 = DecoderLayer(in_filters=d_filters[5] + e_filters[1], out_filters=d_filters[6], kernel_size=d_kernels[6])
-        self.dec16 = DecoderLayer(in_filters=d_filters[6] + e_filters[0], out_filters=d_filters[7], kernel_size=d_kernels[7], bn=False)
-        self.output = nn.Conv2d(d_filters[8], d_filters[8], kernel_size=d_kernels[8], padding=0)
+        self.dec9 = DecoderLayer(in_filters=self.e_filters[8] + self.e_filters[7], out_filters=self.d_filters[0], kernel_size=self.d_kernels[0])
+        self.dec10 = DecoderLayer(in_filters=self.d_filters[0] + self.e_filters[6], out_filters=self.d_filters[1], kernel_size=self.d_kernels[1])
+        self.dec11 = DecoderLayer(in_filters=self.d_filters[1] + self.e_filters[5], out_filters=self.d_filters[2], kernel_size=self.d_kernels[2])
+        self.dec12 = DecoderLayer(in_filters=self.d_filters[2] + self.e_filters[4], out_filters=self.d_filters[3], kernel_size=self.d_kernels[3])
+        self.dec13 = DecoderLayer(in_filters=self.d_filters[3] + self.e_filters[3], out_filters=self.d_filters[4], kernel_size=self.d_kernels[4])
+        self.dec14 = DecoderLayer(in_filters=self.d_filters[4] + self.e_filters[2], out_filters=self.d_filters[5], kernel_size=self.d_kernels[5])
+        self.dec15 = DecoderLayer(in_filters=self.d_filters[5] + self.e_filters[1], out_filters=self.d_filters[6], kernel_size=self.d_kernels[6])
+        self.dec16 = DecoderLayer(in_filters=self.d_filters[6] + self.e_filters[0], out_filters=self.d_filters[7], kernel_size=self.d_kernels[7], bn=False)
+        self.output = nn.Conv2d(self.d_filters[8], self.d_filters[8], kernel_size=self.d_kernels[8], padding=0)
         
         self.sigmoid = nn.Sigmoid()
         
