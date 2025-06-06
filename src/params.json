@@ -12,16 +12,16 @@
     },
     "masks": {
         "n_masks": 100,
-        "mask_kind": "square",
+        "mask_kind": "lines",
         "_possible_mask_kinds": ["square", "lines"],
         "square":
         {
             "mask_percentage": 0.1
         },
         "lines": {
-            "num_lines": 10,
+            "num_lines": 5,
             "min_thickness": 1,
-            "max_thickness": 5
+            "max_thickness": 3
         }
     },
     "dataset": {
