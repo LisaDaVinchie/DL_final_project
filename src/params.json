@@ -1,9 +1,32 @@
 {
-    "batch_size": 32,
-    "epochs": 20,
-    "learning_rate": 0.0001,
-    "loss_kind": "MSELoss",
-    "_possible_loss_kinds": ["MSELoss", "L1Loss"],
-    "optimizer": "Adam",
-    "model_name": "UNet"
+    "training": {
+        "batch_size": 32,
+        "epochs": 20,
+        "learning_rate": 0.0001,
+        "loss_kind": "MSELoss",
+        "_possible_loss_kinds": ["MSELoss", "L1Loss"],
+        "optimizer": "Adam",
+        "model_name": "UNet",
+        "dataset_idx": 1,
+        "mask_idx": 1
+    },
+    "masks": {
+        "n_masks": 100,
+        "mask_kind": "square",
+        "_possible_mask_kinds": ["square", "lines"],
+        "square":
+        {
+            "mask_percentage": 0.1
+        },
+        "lines": {
+            "num_lines": 10,
+            "min_thickness": 1,
+            "max_thickness": 5
+        }
+    },
+    "dataset": {
+        "nrows": 32,
+        "ncols": 32
+    }
+
 }
