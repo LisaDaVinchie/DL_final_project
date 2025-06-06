@@ -117,4 +117,43 @@ class DecoderLayer(nn.Module):
         x = self.activation(x)
         
         return x, mask
+
+class DummyModel(nn.Module):
+    def __init__(self):
+        """Model that substitutes the missing pixels with the mean of the valid pixels."""
+        super(DummyModel, self).__init__()
+    
+    def forward(self, x: th.Tensor, mask: th.Tensor) -> th.Tensor:
+        """
+        Args:
+            x (th.Tensor): (B, C, H, W)
+            mask (th.Tensor): (B, 1, H, W), where True means keep value, False means fill with channel-wise mean
+
+        Returns:
+            th.Tensor: tensor with masked-out values replaced by channel-wise mean of unmasked values
+        """
+        # Broadcast mask to shape of x
+        mask_broadcast = mask.expand_as(x)  # shape (B, C, H, W)
+
+        # Only consider valid (True) values for the mean
+        masked_x = x.masked_fill(~mask_broadcast, 0.0)  # zero out masked-out (False) pixels
+        num_valid = mask_broadcast.sum(dim=(0, 2, 3), keepdim=True).clamp(min=1)  # shape (1, C, 1, 1)
+        channel_sum = masked_x.sum(dim=(0, 2, 3), keepdim=True)
+        channel_mean = channel_sum / num_valid  # shape (1, C, 1, 1)
+
+        # Fill masked-out (False) areas with mean
+        out = th.where(mask_broadcast, x, channel_mean)
+
+        return out, mask
+    
+class SimpleModel(nn.Module):
+    def __init__(self):
+        """Simple model using PartialConv2d for testing purposes."""
+        super(SimpleModel, self).__init__()
+        self.conv = PartialConv2d(3, 3, kernel_size=3, padding=1)
+    
+    def forward(self, x, mask):
+        return self.conv(x, mask)
+    
+
         
