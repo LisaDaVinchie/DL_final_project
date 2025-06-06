@@ -7,6 +7,9 @@
 # Dataset
 data/
 
+# Paths
+src/paths.json
+
 # OS generated files
 **/.DS_Store
 
