@@ -55,6 +55,12 @@ def main():
     epochs = int(training_params["epochs"])
     learning_rate = float(training_params["learning_rate"])
     mask_idx = int(training_params["mask_idx"])
+    n_train = int(training_params["n_train"])
+    n_test = int(training_params["n_test"])
+    if n_train <= 0:
+        n_train = None
+    if n_test <= 0:
+        n_test = None
 
     masks_path = masks_dir / f"mask_{mask_idx}.pt"
     
@@ -72,7 +78,7 @@ def main():
                       results_path = results_path,
                       weights_path = weights_path)
     
-    trainset, testset = load_cifar10_data(normalize=True, n_train = 200, n_test = 10)
+    trainset, testset = load_cifar10_data(normalize=True, n_train = n_train, n_test = n_test)
     
     masks = th.load(masks_path)
     
