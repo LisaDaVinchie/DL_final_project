@@ -20,26 +20,27 @@ def load_cifar10_data(normalize=True, n_train = None, n_test = None, desired_cla
     # Load the test dataset
     testset = torchvision.datasets.CIFAR10(root='../data', train=False, download=True, transform=transform)
     
-    # Create a subset of the first 10,000 images
-    if n_train is not None:
+    if desired_classes is None and n_train is None and n_test is None:
+        # If no specific classes or counts are desired, return the full datasets
+        return trainset, testset
+    else:
+        # Create a subset of the first 10,000 images
         if desired_classes is not None:
             # Filter the indices to include only the desired classes
-            subset_indices = [i for i, (_, label) in enumerate(trainset) if label in desired_classes]
-        else:
+            subset_indices_train = [i for i, (_, label) in enumerate(trainset) if label in desired_classes]
+            subset_indices_test = [i for i, (_, label) in enumerate(testset) if label in desired_classes]
+        
+        if n_train is not None and desired_classes is None:
             # If no specific classes are desired, just take the first n_train images
-            subset_indices = list(range(n_train))
-        trainset = Subset(trainset, subset_indices)
-    
-    if n_test is not None:
-        if desired_classes is not None:
-            # Filter the indices to include only the desired classes
-            subset_indices = [i for i, (_, label) in enumerate(testset) if label in desired_classes]
-        else:
-            # If no specific classes are desired, just take the first n_train images
-            subset_indices = list(range(n_test))
-        testset = Subset(testset, subset_indices)
+            subset_indices_train = list(range(n_train))
+        
+        if n_test is not None:
+            subset_indices_test = list(range(n_test))
+        
+        trainset = Subset(trainset, subset_indices_train)
+        testset = Subset(testset, subset_indices_test)
 
-    return trainset, testset
+        return trainset, testset
 
 def create_dataloaders(trainset, testset, batch_size):
     # Create a DataLoader for the training dataset
