@@ -15,7 +15,7 @@
         "mask_idx": 1
     },
     "masks": {
-        "n_masks": 100,
+        "n_masks": 1000,
         "mask_kind": "lines",
         "_possible_mask_kinds": ["square", "lines"],
         "square":
