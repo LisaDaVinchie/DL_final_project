@@ -37,9 +37,8 @@ class TestDummyModel(unittest.TestCase):
         for i in range(self.n_channels):
             expected_output[:, i, :mask_size, :mask_size] = means[i]
         
-        output_tensor, output_mask = self.model(input_tensor, mask_tensor)
+        output_tensor = self.model(input_tensor, mask_tensor)
         
         self.assertEqual(output_tensor.shape, (input_shape))
-        self.assertEqual(output_mask.shape, mask_tensor.shape)
         
         self.assertTrue(th.allclose(output_tensor, expected_output, atol=1e-6))
