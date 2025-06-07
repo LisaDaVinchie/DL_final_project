@@ -57,10 +57,13 @@ def main():
     mask_idx = int(training_params["mask_idx"])
     n_train = int(training_params["n_train"])
     n_test = int(training_params["n_test"])
+    classes = list(training_params["classes"])
     if n_train <= 0:
         n_train = None
     if n_test <= 0:
         n_test = None
+    if len(classes) == 0:
+        classes = None
 
     masks_path = masks_dir / f"mask_{mask_idx}.pt"
     
@@ -78,7 +81,9 @@ def main():
                       results_path = results_path,
                       weights_path = weights_path)
     
-    trainset, testset = load_cifar10_data(normalize=True, n_train = n_train, n_test = n_test)
+    trainset, testset = load_cifar10_data(normalize=True, n_train = n_train, n_test = n_test, desired_classes=[0])
+    
+    print(f"Training on {len(trainset)} images, testing on {len(testset)} images", flush=True)
     
     masks = th.load(masks_path)
     
