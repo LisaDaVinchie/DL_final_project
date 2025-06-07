@@ -6,7 +6,7 @@ from time import time
 import json
 from import_dataset import create_dataloaders, load_cifar10_data
 from model import select_model
-from losses import select_loss_function
+from losses import select_loss_function, dice_coef
 import json
 
 def main():
@@ -126,6 +126,7 @@ class TrainModel:
         self.train_losses = []
         self.test_losses = []
         self.training_lr = []
+        self.dice_coef = []
         
     def train(self, train_loader, test_loader, masks, epochs: int):
         """Train the model on the dataset.
@@ -154,8 +155,9 @@ class TrainModel:
                 
                 batch_masks = masks[random_idxs].unsqueeze(1).repeat(1, 3, 1, 1)
                 
-                loss = self._compute_loss(images, batch_masks)
+                loss, dc = self._compute_loss(images, batch_masks)
                 epoch_loss += loss.item()
+                dice_coeff = dc.item()
                 
                 loss.backward()
                 self.optimizer.step()
@@ -166,19 +168,24 @@ class TrainModel:
             # self.scheduler.step() if self.scheduler is not None else None
             
             self.train_losses.append(epoch_loss / n_batches)
+            self.dice_coef.append(dice_coeff / n_batches)
             
             with th.no_grad():
                 self.model.eval()
                 epoch_loss = 0.0
                 n_batches = 0
+                dice_coeff = 0.0
                 for (images, _) in test_loader:
                     n_img = images.shape[0]
                     random_idxs = th.randint(0, n_masks, (n_img,))
                     batch_masks = masks[random_idxs].unsqueeze(1).repeat(1, 3, 1, 1)
-                    loss = self._compute_loss(images, batch_masks)
+                    loss, dc = self._compute_loss(images, batch_masks)
                     epoch_loss += loss.item()
+                    dice_coeff += dc.item()
                     n_batches += 1
+                    
                 self.test_losses.append(epoch_loss / n_batches)
+                self.dice_coef.append(dice_coeff / n_batches)
             
             if (epoch + 1) % self.save_every == 0:
                 self.save_weights()
@@ -192,7 +199,8 @@ class TrainModel:
         masks = masks.to(self.device)
         output = self.model(images, masks.float())
         loss = self.loss_function(output, images, masks)
-        return loss
+        dc = dice_coef(images, output)
+        return loss, dc
     
     def save_weights(self):
         """Save the model weights to a file."""
@@ -217,6 +225,10 @@ class TrainModel:
             f.write("Test losses\n")
             for loss in self.test_losses:
                 f.write(f"{loss}\t")
+            f.write("\n\n")
+            f.write("Dice coefficient\n")
+            for dc in self.dice_coef:
+                f.write(f"{dc}\t")
             f.write("\n\n")
             f.write("Learning rate\n")
             for lr in self.training_lr:
