@@ -5,8 +5,9 @@ import argparse
 from time import time
 import json
 from import_dataset import create_dataloaders, load_cifar10_data
-from model import UNet
+from model import select_model
 from losses import select_loss_function
+import json
 
 def main():
     """Main function to train a model on a dataset."""
@@ -28,40 +29,56 @@ def main():
         params = json.load(f)
     with open(paths_file_path, 'r') as f:
         paths = json.load(f)
-    
-    batch_size = int(params["batch_size"])
-    loss_kind = str(params["loss_kind"])
-    epochs = int(params["epochs"])
-    learning_rate = float(params["learning_rate"])
+        
+    params_str = json.dumps(params, indent=4)[1: -1]
     
     weights_path = Path(paths["next_weights_path"])
     results_path = Path(paths["next_result_path"])
     masks_path = Path(paths["current_mask_path"])
+    masks_dir = masks_path.parent
     
     if not weights_path.parent.exists():
         raise FileNotFoundError(f"Weights directory does not exist: {weights_path.parent}")
     if not results_path.parent.exists():
         raise FileNotFoundError(f"Results directory does not exist: {results_path.parent}")
-    if not masks_path.exists():
-        raise FileNotFoundError(f"Masks file does not exist: {masks_path}")
+    if not masks_dir.exists():
+        raise FileNotFoundError(f"Masks dir does not exist: {masks_dir}")
     
     # Ensure the results file exists and is a txt file
     results_path = results_path.with_suffix('.txt')
     results_path.touch(exist_ok=True)
+    
+    training_params = params["training"]
+    model_name = str(training_params["model_name"])
+    batch_size = int(training_params["batch_size"])
+    loss_kind = str(training_params["loss_kind"])
+    epochs = int(training_params["epochs"])
+    learning_rate = float(training_params["learning_rate"])
+    mask_idx = int(training_params["mask_idx"])
+
+    masks_path = masks_dir / f"mask_{mask_idx}.pt"
+    
+    if not masks_path.exists():
+        raise FileNotFoundError(f"Masks file {masks_path} does not exist")
         
     
-    model = UNet()
+    model = select_model(model_name)
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
     loss = select_loss_function(loss_kind)
         
     train = TrainModel(model=model,
                       loss_function=loss,
-                      optimizer=optimizer)
+                      optimizer=optimizer,
+                      results_path = results_path,
+                      weights_path = weights_path)
     
     trainset, testset = load_cifar10_data(normalize=True, n_train = 200, n_test = 10)
+    
+    masks = th.load(masks_path)
+    
     train_loader, test_loader = create_dataloaders(trainset, testset, batch_size=batch_size)
     
-    train.train(train_loader, test_loader, epochs)
+    train.train(train_loader, test_loader, masks, epochs)
     
     elapsed_time = time() - start_time
     print(flush=True)
@@ -69,7 +86,7 @@ def main():
     print(f"Model weights saved at {weights_path}", flush=True)
     
     print(flush=True)
-    train.save_results(elapsed_time)
+    train.save_results(params_str, elapsed_time)
     print(f"Results saved at {results_path}", flush=True)
     
     print(f"\nTraining completed in {elapsed_time:.2f} seconds", flush=True)
@@ -101,7 +118,7 @@ def change_dataset_idx(dataset_path: Path, dataset_specs_path: Path, new_idx: in
     return new_dataset_path, new_dataset_specs_path
     
 class TrainModel:
-    def __init__(self, model: th.nn.Module, loss_function, optimizer: th.optim, save_every: int = 1):
+    def __init__(self, model: th.nn.Module, loss_function, optimizer: th.optim, results_path: Path, weights_path: Path, save_every: int = 1):
         """Initialize the training class.
 
         Args:
@@ -118,12 +135,14 @@ class TrainModel:
         self.optimizer = optimizer
         self.lr = self.optimizer.param_groups[0]['lr']
         self.save_every = save_every
+        self.results_path = results_path
+        self.weights_path = weights_path
         
         self.train_losses = []
         self.test_losses = []
         self.training_lr = []
         
-    def train(self, train_loader, test_loader, epochs: int):
+    def train(self, train_loader, test_loader, masks, epochs: int):
         """Train the model on the dataset.
 
         Args:
@@ -134,14 +153,23 @@ class TrainModel:
         if epochs <= 0:
             raise ValueError("Number of epochs must be positive.")
         
+        n_masks = masks.shape[0]
+        
         print(flush=True)
         for epoch in range(epochs):
             print(f"Epoch {epoch + 1}/{epochs}\n", flush=True)
             self.model.train()
             epoch_loss = 0.0
             n_batches = 0
-            for (images, masks) in train_loader:
-                loss = self._compute_loss(images, masks)
+            for (images, _) in train_loader:
+                
+                n_img = images.shape[0]
+                
+                random_idxs = th.randint(0, n_masks, (n_img,))
+                
+                batch_masks = masks[random_idxs].unsqueeze(1).repeat(1, 3, 1, 1)
+                
+                loss = self._compute_loss(images, batch_masks)
                 epoch_loss += loss.item()
                 
                 loss.backward()
@@ -158,8 +186,11 @@ class TrainModel:
                 self.model.eval()
                 epoch_loss = 0.0
                 n_batches = 0
-                for (images, masks) in test_loader:
-                    loss = self._compute_loss(images, masks)
+                for (images, _) in test_loader:
+                    n_img = images.shape[0]
+                    random_idxs = th.randint(0, n_masks, (n_img,))
+                    batch_masks = masks[random_idxs].unsqueeze(1).repeat(1, 3, 1, 1)
+                    loss = self._compute_loss(images, batch_masks)
                     epoch_loss += loss.item()
                     n_batches += 1
                 self.test_losses.append(epoch_loss / n_batches)
@@ -174,15 +205,15 @@ class TrainModel:
     def _compute_loss(self, images, masks):
         images = images.to(self.device)
         masks = masks.to(self.device)
-        output = self.model(images, masks.float())
-        loss = self.loss_function(output[:, 0], images[:, 4], masks[:, 4])
+        output, _ = self.model(images, masks.float())
+        loss = self.loss_function(output, images, masks)
         return loss
     
-    def save_weights(self, weights_path):
+    def save_weights(self):
         """Save the model weights to a file."""
-        th.save(self.model.state_dict(), weights_path)
+        th.save(self.model.state_dict(), self.weights_path)
         
-    def save_results(self, results_path: Path,  elapsed_time: float = None):
+    def save_results(self, params_string: str = None, elapsed_time: float = None):
         """Save the training results to a file.
 
         Args:
@@ -190,7 +221,7 @@ class TrainModel:
         """
         
         # Save the train losses to a txt file
-        with open(results_path, 'w') as f:
+        with open(self.results_path, 'w') as f:
             if elapsed_time is not None:
                 f.write("Elapsed time [s]:\n")
                 f.write(f"{elapsed_time}\n\n")
@@ -206,6 +237,13 @@ class TrainModel:
             for lr in self.training_lr:
                 f.write(f"{lr}\t")
             f.write("\n\n")
+            if params_string is not None:
+                f.write("Parameters")
+                f.write(params_string)
+                f.write("\n\n")
+
+            
+            
 
 if __name__ == "__main__":
     main()
