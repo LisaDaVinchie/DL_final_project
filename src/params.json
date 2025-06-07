@@ -6,7 +6,8 @@
         "loss_kind": "mse",
         "_possible_loss_kinds": ["mse", "l1"],
         "optimizer": "Adam",
-        "model_name": "UNet",
+        "model_name": "unet_lite",
+        "_possible_model_names": ["unet", "unet_lite", "dummy", "simple"],
         "dataset_idx": 1,
         "mask_idx": 1
     },
