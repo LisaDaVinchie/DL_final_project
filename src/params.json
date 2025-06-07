@@ -3,8 +3,8 @@
         "batch_size": 32,
         "epochs": 20,
         "learning_rate": 0.0001,
-        "loss_kind": "MSELoss",
-        "_possible_loss_kinds": ["MSELoss", "L1Loss"],
+        "loss_kind": "mse",
+        "_possible_loss_kinds": ["mse", "l1"],
         "optimizer": "Adam",
         "model_name": "UNet",
         "dataset_idx": 1,
@@ -27,6 +27,26 @@
     "dataset": {
         "nrows": 32,
         "ncols": 32
+    },
+    "model": {
+        "unet": {
+            "e_filters": [3, 64, 128, 256, 512, 512, 512, 512, 512],
+            "d_filters": [512, 512, 512, 512, 256, 128, 64, 3, 3],
+            "e_kernels": [3, 3, 3, 3, 3, 3, 3, 3],
+            "d_kernels": [3, 3, 3, 3, 3, 3, 3, 3, 1],
+            "e_bn" : [0, 1, 1, 1, 1, 1, 1, 1],
+            "d_bn" : [1, 1, 1, 1, 1, 1, 1, 0],
+            "e_strides": [2, 2, 2, 2, 2, 2, 2, 2],
+            "d_strides": [2, 2, 2, 2, 2, 2, 2, 2]
+        },
+        "unet_lite": {
+            "e_filters": [3, 32, 32, 64, 64, 128, 128, 256, 256],
+            "d_filters": [256, 128, 128, 64, 64, 32, 32, 3, 3],
+            "e_kernels": [7, 5, 5, 3, 3, 3, 3, 3],
+            "d_kernels": [3, 3, 3, 3, 3, 3, 3, 3, 1],
+            "e_bn" : [0, 1, 0, 1, 0, 1, 0, 1],
+            "e_strides": [1, 2, 1, 2, 1, 2, 1, 2]
+        }
     }
 
 }
