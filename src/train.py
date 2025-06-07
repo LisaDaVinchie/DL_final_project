@@ -101,32 +101,6 @@ def main():
     print(f"Results saved at {results_path}", flush=True)
     
     print(f"\nTraining completed in {elapsed_time:.2f} seconds", flush=True)
-
-def change_dataset_idx(dataset_path: Path, dataset_specs_path: Path, new_idx: int) -> tuple:
-    """Change the dataset index in the file names.
-
-    Args:
-        dataset_path (Path): latest dataset path
-        dataset_specs_path (Path): latest dataset specs path
-        new_idx (int): new dataset index
-
-    Raises:
-        FileNotFoundError: dataset file not found
-        FileNotFoundError: dataset specs file not found
-
-    Returns:
-        tuple: new dataset path, new dataset specs path
-    """
-    dataset_ext = dataset_path.suffix
-    dataset_name = dataset_path.stem.split("_")[0]
-    new_dataset_path = dataset_path.parent / f"{dataset_name}_{new_idx}{dataset_ext}"
-    
-    dataset_specs_ext = dataset_specs_path.suffix
-    dataset_specs_name = "dataset_specs"
-    
-    new_dataset_specs_path = dataset_specs_path.parent / f"{dataset_specs_name}_{new_idx}{dataset_specs_ext}"
-    
-    return new_dataset_path, new_dataset_specs_path
     
 class TrainModel:
     def __init__(self, model: th.nn.Module, loss_function, optimizer: th.optim, results_path: Path, weights_path: Path, save_every: int = 1):
