@@ -73,8 +73,10 @@ class PerPixelL1(nn.Module):
         masked_diff = diff.masked_fill(masks, 0.0)
         return masked_diff.sum() / n_valid_pixels
     
-def dice_coef(prediction, target, epsilon=1e-7):
-    y_true_f = target.view(-1)
-    y_pred_f = prediction.view(-1)
-    intersection = (y_true_f * y_pred_f).sum()
-    return (2. * intersection + epsilon) / (y_true_f.sum() + y_pred_f.sum() + epsilon)
+def dice_coef(y_true, y_pred, epsilon=1e-7):
+    y_true = y_true.float()
+    y_pred = y_pred.float()
+    y_true_f = y_true.view(-1)
+    y_pred_f = y_pred.view(-1)
+    intersection = th.sum(y_true_f * y_pred_f)
+    return (2. * intersection + epsilon) / (th.sum(y_true_f) + th.sum(y_pred_f) + epsilon)
