@@ -69,10 +69,9 @@ class TestModel(unittest.TestCase):
         input_tensor = th.rand(input_shape)
         mask_tensor = th.ones_like(input_tensor)
         
-        output_tensor, output_mask = model(input_tensor, mask_tensor)
+        output_tensor = model(input_tensor, mask_tensor)
         
         self.assertEqual(output_tensor.shape, (input_shape))
-        self.assertEqual(output_mask.shape, mask_tensor.shape)
         
     def test_unet_lite_forward(self):
         input_shape = (32, 3, 32, 32)
@@ -82,7 +81,6 @@ class TestModel(unittest.TestCase):
         input_tensor = th.rand(input_shape)
         mask_tensor = th.ones_like(input_tensor)
         
-        output_tensor, output_mask = model(input_tensor, mask_tensor)
+        output_tensor = model(input_tensor, mask_tensor)
         
         self.assertEqual(output_tensor.shape, (input_shape))
-        self.assertEqual(output_mask.shape, mask_tensor.shape)

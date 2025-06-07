@@ -104,7 +104,7 @@ class UNet(nn.Module):
         x = self.output(x16)
         x = self.sigmoid(x)
         
-        return x, mask16
+        return x
     
 class UNetLite(nn.Module):
     def __init__(self, model_params: dict = None):
@@ -203,7 +203,7 @@ class UNetLite(nn.Module):
         x = self.output(x16)
         x = self.sigmoid(x)
         
-        return x, mask16
+        return x
     
 class EncoderLayer(nn.Module):
     def __init__(self, in_filters, out_filters, kernel_size, stride=2, bn=True):

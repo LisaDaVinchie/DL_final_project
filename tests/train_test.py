@@ -15,7 +15,9 @@ class TestTrainModel(unittest.TestCase):
         self.model = SimpleModel()
         self.loss_function = PerPixelL1()
         self.optimizer = Adam(self.model.parameters(), lr=0.001)
-        self.train_model = TrainModel(self.model, self.loss_function, self.optimizer)
+        self.train_model = TrainModel(self.model, self.loss_function, self.optimizer, 
+                                      weights_path="test_weights.pth", results_path="test_results",
+                                      save_every=1)
 
     def test_train_model_initialization(self):
         """Test if the TrainModel class initializes correctly."""

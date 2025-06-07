@@ -216,7 +216,7 @@ class TrainModel:
     def _compute_loss(self, images, masks):
         images = images.to(self.device)
         masks = masks.to(self.device)
-        output, _ = self.model(images, masks.float())
+        output = self.model(images, masks.float())
         loss = self.loss_function(output, images, masks)
         return loss
     
