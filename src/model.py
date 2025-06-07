@@ -2,6 +2,27 @@ import torch as th
 import torch.nn as nn
 from PartialConv import PartialConv2d
 
+def select_model(model_name: str) -> nn.Module:
+    """
+    Selects the model based on the provided model name.
+    
+    Args:
+        model_name (str): Name of the model to select.
+        model_params (dict, optional): Parameters for the model. Defaults to None.
+        
+    Returns:
+        nn.Module: The selected model instance.
+    """
+    if model_name == "unet":
+        return UNet()
+    elif model_name == "unet_lite":
+        return UNetLite()
+    elif model_name == "dummy":
+        return DummyModel()
+    elif model_name == "simple":
+        return SimpleModel()
+    else:
+        raise ValueError(f"Unknown model name: {model_name}")
 class UNet(nn.Module):
     def __init__(self, model_params: dict = None):
         super(UNet, self).__init__()
