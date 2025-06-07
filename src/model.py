@@ -281,6 +281,9 @@ class DummyModel(nn.Module):
     def __init__(self):
         """Model that substitutes the missing pixels with the mean of the valid pixels."""
         super(DummyModel, self).__init__()
+        
+        # Dummy layer to match the interface of nn.Module
+        self.layer = nn.Conv2d(3, 3, kernel_size=1, padding=0)
     
     def forward(self, x: th.Tensor, mask: th.Tensor) -> th.Tensor:
         """
@@ -291,6 +294,7 @@ class DummyModel(nn.Module):
         Returns:
             th.Tensor: tensor with masked-out values replaced by channel-wise mean of unmasked values
         """
+        mask = mask.bool()  # Ensure mask is boolean
         # Broadcast mask to shape of x
         mask_broadcast = mask.expand_as(x)  # shape (B, C, H, W)
 
@@ -303,7 +307,7 @@ class DummyModel(nn.Module):
         # Fill masked-out (False) areas with mean
         out = th.where(mask_broadcast, x, channel_mean)
 
-        return out, mask
+        return out.requires_grad_(True)  # Ensure the output tensor requires gradient for training
 class SimpleModel(nn.Module):
     def __init__(self):
         """Simple model using PartialConv2d for testing purposes."""
