@@ -10,6 +10,15 @@ data/
 # Paths
 src/paths.json
 
+# Result import command
+import_results.sh
+
+# Bot codes
+bot_codes.txt
+
+# Log files
+logs/
+
 # OS generated files
 **/.DS_Store
 
