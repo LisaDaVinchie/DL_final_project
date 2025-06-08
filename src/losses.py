@@ -39,14 +39,14 @@ class PerPixelMSE(nn.Module):
             th.Tensor: per-pixel loss
         """
         
-        n_valid_pixels = (~masks).sum().float() # count the number of masked (0) pixels, by inverting the mask
+        n_valid_pixels = (~masks).float().sum() # count the number of masked (0) pixels, by inverting the mask
          
         if n_valid_pixels == 0: # if all pixels are masked, return 0
             return th.tensor(0.0, requires_grad=True)
         
         diff = (prediction - target) ** 2 # Calculate the squared difference, for each pixel
         masked_diff = diff.masked_fill(masks, 0.0) # Set the masked pixels to 0 where the mask is 1, i.e. where the pixel is not masked
-        return masked_diff.sum() / n_valid_pixels # Return the mean of the squared differences over the number of valid pixels
+        return masked_diff.sum(), n_valid_pixels # Return the mean of the squared differences over the number of valid pixels
 
 class PerPixelL1(nn.Module):
     def __init__(self):
@@ -71,12 +71,14 @@ class PerPixelL1(nn.Module):
         
         diff = th.abs(prediction - target)
         masked_diff = diff.masked_fill(masks, 0.0)
-        return masked_diff.sum() / n_valid_pixels
+        return masked_diff.sum(), n_valid_pixels  # Return the sum of the absolute differences over the number of valid pixels
     
-def dice_coef(y_true, y_pred, epsilon=1e-7):
-    y_true = y_true.float()
-    y_pred = y_pred.float()
-    y_true_f = y_true.view(-1)
-    y_pred_f = y_pred.view(-1)
-    intersection = th.sum(y_true_f * y_pred_f)
-    return (2. * intersection + epsilon) / (th.sum(y_true_f) + th.sum(y_pred_f) + epsilon)
+def dice_coef(prediction: th.Tensor, target: th.Tensor, mask: th.Tensor):
+    inv_mask = (~mask).float()  # Invert the mask to get the pixels that are not masked
+    target = (target * inv_mask).float()  # Apply the mask to the target
+    prediction = (prediction * inv_mask).float()  # Apply the mask to the prediction
+    
+    intersection = th.sum(target * prediction)
+    union = th.sum(target) + th.sum(prediction)
+    
+    return intersection, union
