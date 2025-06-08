@@ -17,7 +17,7 @@ class TestTrainModel(unittest.TestCase):
         self.optimizer = Adam(self.model.parameters(), lr=0.001)
         self.train_model = TrainModel(self.model, self.loss_function, self.optimizer, 
                                       weights_path="test_weights.pth", results_path="test_results",
-                                      save_every=1)
+                                      save_every=1, lr_scheduler=None)
 
     def test_train_model_initialization(self):
         """Test if the TrainModel class initializes correctly."""

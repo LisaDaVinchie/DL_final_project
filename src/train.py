@@ -119,7 +119,7 @@ def main():
     print(f"\nTraining completed in {elapsed_time:.2f} seconds", flush=True)
     
 class TrainModel:
-    def __init__(self, model: th.nn.Module, loss_function: th.nn.Module, optimizer: optim, lr_scheduler: optim.lr_scheduler, results_path: Path, weights_path: Path, save_every: int = 1):
+    def __init__(self, model: th.nn.Module, loss_function: th.nn.Module, optimizer: optim, results_path: Path, weights_path: Path, save_every: int = 1, lr_scheduler: optim.lr_scheduler = None):
         """Initialize the training class.
 
         Args:
