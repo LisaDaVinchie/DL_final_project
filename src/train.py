@@ -64,7 +64,8 @@ def main():
         n_test = None
     if len(classes) == 0:
         classes = None
-
+    lr_scheduler = str(training_params["lr_scheduler"])
+    
     masks_path = masks_dir / f"mask_{mask_idx}.pt"
     
     if not masks_path.exists():
@@ -74,12 +75,27 @@ def main():
     model = select_model(model_name)
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
     loss = select_loss_function(loss_kind)
+    
+    scheduler = None
+    schedulers_params = params["lr_schedulers"]
+    if lr_scheduler == "lambda":
+        factor = float(schedulers_params[lr_scheduler]["factor"])
+        step_size = int(schedulers_params[lr_scheduler]["step_size"])
+        lr_lambda = lambda step: factor ** -(step // step_size)
+        scheduler = optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lr_lambda)
+    elif lr_scheduler == "step":
+        step_size = int(schedulers_params[lr_scheduler]["step_size"])
+        gamma = float(schedulers_params[lr_scheduler]["gamma"])
+        scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=step_size, gamma=gamma)
+    elif lr_scheduler != "none":
+        raise ValueError(f"Unknown learning rate scheduler: {lr_scheduler}.")
         
     train = TrainModel(model=model,
                       loss_function=loss,
                       optimizer=optimizer,
                       results_path = results_path,
-                      weights_path = weights_path)
+                      weights_path = weights_path,
+                      lr_scheduler=scheduler)
     
     trainset, testset = load_cifar10_data(normalize=True, n_train = n_train, n_test = n_test, desired_classes=[0])
     
@@ -103,14 +119,17 @@ def main():
     print(f"\nTraining completed in {elapsed_time:.2f} seconds", flush=True)
     
 class TrainModel:
-    def __init__(self, model: th.nn.Module, loss_function, optimizer: th.optim, results_path: Path, weights_path: Path, save_every: int = 1):
+    def __init__(self, model: th.nn.Module, loss_function: th.nn.Module, optimizer: optim, lr_scheduler: optim.lr_scheduler, results_path: Path, weights_path: Path, save_every: int = 1):
         """Initialize the training class.
 
         Args:
-            params (_type_): json
-            weights_path (_type_): _description_
-            results_path (_type_): _description_
-            dataset_specs (_type_, optional): _description_. Defaults to None.
+            model (th.nn.Module): the model to train
+            loss_function (th.nn.Module): the loss function to use
+            optimizer (optim.Optimizer): the optimizer to use
+            lr_scheduler (optim.lr_scheduler): learning rate scheduler
+            results_path (Path): path to save the training results
+            weights_path (Path): path to save the model weights
+            save_every (int): how often to save the model weights and results
         """
         
         self.model = model
@@ -122,6 +141,7 @@ class TrainModel:
         self.save_every = save_every
         self.results_path = results_path
         self.weights_path = weights_path
+        self.lr_scheduler = lr_scheduler
         
         self.train_losses = []
         self.test_losses = []
@@ -163,6 +183,8 @@ class TrainModel:
                 self.optimizer.step()
                 self.optimizer.zero_grad()
                 n_batches += 1
+            
+            self.lr_scheduler.step() if self.lr_scheduler is not None else None
 
             self.training_lr.append(self.optimizer.param_groups[0]['lr'])
             # self.scheduler.step() if self.scheduler is not None else None
