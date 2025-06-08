@@ -10,6 +10,8 @@
         "_possible_loss_kinds": ["mse", "l1"],
         "optimizer": "Adam",
         "model_name": "unet_lite",
+        "lr_scheduler": "step",
+        "_possible_lr_schedulers": ["none", "step", "lambda"],
         "_possible_model_names": ["unet", "unet_lite", "dummy", "simple"],
         "dataset_idx": 1,
         "mask_idx": 1
@@ -31,6 +33,16 @@
     "dataset": {
         "nrows": 32,
         "ncols": 32
+    },
+    "lr_schedulers": {
+        "step": {
+            "step_size": 10,
+            "gamma": 0.1
+        },
+        "lambda": {
+            "factor": 2,
+            "step_size": 4
+        }
     },
     "model": {
         "unet": {
