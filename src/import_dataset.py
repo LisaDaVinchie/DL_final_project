@@ -30,7 +30,7 @@ def load_cifar10_data(normalize=True, n_train = None, n_test = None, desired_cla
             subset_indices_train = [i for i, (_, label) in enumerate(trainset) if label in desired_classes]
             subset_indices_test = [i for i, (_, label) in enumerate(testset) if label in desired_classes]
         
-        if n_train is not None and desired_classes is None:
+        if n_train is not None:
             # If no specific classes are desired, just take the first n_train images
             subset_indices_train = list(range(n_train))
         
