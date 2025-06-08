@@ -3,14 +3,14 @@
         "n_train": -1,
         "n_test": -1,
         "classes": [2],
-        "batch_size": 32,
+        "batch_size": 64,
         "epochs": 20,
         "learning_rate": 0.0001,
         "loss_kind": "mse",
         "_possible_loss_kinds": ["mse", "l1"],
         "optimizer": "Adam",
         "model_name": "unet_lite",
-        "lr_scheduler": "step",
+        "lr_scheduler": "lambda",
         "_possible_lr_schedulers": ["none", "step", "lambda"],
         "_possible_model_names": ["unet", "unet_lite", "dummy", "simple"],
         "dataset_idx": 1,
@@ -36,7 +36,7 @@
     },
     "lr_schedulers": {
         "step": {
-            "step_size": 10,
+            "step_size": 4,
             "gamma": 0.1
         },
         "lambda": {
