@@ -11,7 +11,7 @@ data/
 src/paths.json
 
 # Result import command
-import_results.sh
+transfer.sh
 
 # Bot codes
 bot_codes.txt
