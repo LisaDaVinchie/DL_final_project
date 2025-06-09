@@ -11,7 +11,7 @@
         "n_test": -1,
         "classes": [2],
         "batch_size": 64,
-        "epochs": 20,
+        "epochs": 80,
         "learning_rate": 0.0001,
         "loss_kind": "mse",
         "_possible_loss_kinds": ["mse", "l1"],
