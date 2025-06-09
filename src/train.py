@@ -6,7 +6,7 @@ from time import time
 import json
 from import_dataset import create_dataloaders, load_cifar10_data
 from model import select_model
-from losses import select_loss_function, dice_coef
+from losses import select_loss_function, dice_coef, calculate_valid_pixels
 import json
 
 def main():
@@ -178,9 +178,9 @@ class TrainModel:
                 
                 batch_masks = masks[random_idxs].unsqueeze(1).repeat(1, 3, 1, 1)
                 
-                loss, valid, inter, un = self._compute_loss(images, batch_masks)
+                loss, inter, un = self._compute_loss(images, batch_masks)
                 epoch_loss += loss.item()
-                n_valid_pixels += valid.item()
+                n_valid_pixels += calculate_valid_pixels(batch_masks).item()
                 epoch_intersection += inter.item()
                 epoch_union += un.item()
                 
@@ -206,9 +206,9 @@ class TrainModel:
                     n_img = images.shape[0]
                     random_idxs = th.randint(0, n_masks, (n_img,))
                     batch_masks = masks[random_idxs].unsqueeze(1).repeat(1, 3, 1, 1)
-                    loss, valid, inter, un = self._compute_loss(images, batch_masks)
+                    loss, inter, un = self._compute_loss(images, batch_masks)
                     epoch_loss += loss.item()
-                    n_valid_pixels += valid.item()
+                    n_valid_pixels += calculate_valid_pixels(batch_masks).item()
                     epoch_intersection += inter.item()
                     epoch_union += un.item()
                     
@@ -226,9 +226,9 @@ class TrainModel:
         images = images.to(self.device)
         masks = masks.to(self.device)
         output = self.model(images, masks.float())
-        loss, n_valid_pixels = self.loss_function(output, images, masks)
+        loss = self.loss_function(output, images, masks)
         intersection, union = dice_coef(images, output, masks)
-        return loss, n_valid_pixels, intersection, union
+        return loss, intersection, union
     
     def save_weights(self):
         """Save the model weights to a file."""
