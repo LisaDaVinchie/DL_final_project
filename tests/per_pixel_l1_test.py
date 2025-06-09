@@ -37,8 +37,8 @@ class TestPerPixelLoss(unittest.TestCase):
         loss = self.loss_function(prediction, target, mask)
         # Only unmasked pixels are (0, 0) and (1, 1)
         # Differences: |1.0 - 1.0| = 0.0 and |4.0 - 1.0| = 3.0
-        # Mean loss: (0.0 + 3.0) / 2 = 1.5
-        expected_loss = th.tensor(1.5)
+        # Mean loss: (0.0 + 3.0)
+        expected_loss = th.tensor(3.0)
         self.assertTrue(th.allclose(loss, expected_loss))
 
     def test_random_inputs(self):

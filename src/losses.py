@@ -39,14 +39,9 @@ class PerPixelMSE(nn.Module):
             th.Tensor: per-pixel loss
         """
         
-        n_valid_pixels = (~masks).float().sum() # count the number of masked (0) pixels, by inverting the mask
-         
-        if n_valid_pixels == 0: # if all pixels are masked, return 0
-            return th.tensor(0.0, requires_grad=True)
-        
         diff = (prediction - target) ** 2 # Calculate the squared difference, for each pixel
         masked_diff = diff.masked_fill(masks, 0.0) # Set the masked pixels to 0 where the mask is 1, i.e. where the pixel is not masked
-        return masked_diff.sum(), n_valid_pixels # Return the mean of the squared differences over the number of valid pixels
+        return masked_diff.sum()
 
 class PerPixelL1(nn.Module):
     def __init__(self):
@@ -65,13 +60,20 @@ class PerPixelL1(nn.Module):
             th.Tensor: per-pixel loss
         """
         
-        n_valid_pixels = (~masks).sum().float()
-        if n_valid_pixels == 0:
-            return th.tensor(0.0, requires_grad=True)
-        
         diff = th.abs(prediction - target)
         masked_diff = diff.masked_fill(masks, 0.0)
-        return masked_diff.sum(), n_valid_pixels  # Return the sum of the absolute differences over the number of valid pixels
+        return masked_diff.sum()  # Return the sum of the absolute differences over the number of valid pixels
+    
+def calculate_valid_pixels(masks: th.Tensor) -> int:
+    """Calculate the number of valid pixels (not masked) in the masks.
+
+    Args:
+        masks (th.Tensor): Boolean mask with False where the pixel is masked, shape (batch_size, channels, height, width).
+
+    Returns:
+        int: Number of valid pixels.
+    """
+    return (~masks).sum().float()
     
 def dice_coef(prediction: th.Tensor, target: th.Tensor, mask: th.Tensor):
     inv_mask = (~mask).float()  # Invert the mask to get the pixels that are not masked
