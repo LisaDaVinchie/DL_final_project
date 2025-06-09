@@ -23,6 +23,14 @@ MASKS_DIR := $(DATA_DIR)/masks
 MASKS_BASENAME := mask
 MASKS_FILE_EXT := .pt
 
+OPTIM_DIR := $(DATA_DIR)/optim
+OPTIM_BASENAME := optim
+OPTIM_FILE_EXT := .txt
+STUDY_BASENAME := study
+STUDY_FILE_EXT := .txt
+
+
+
 CURRENT_IDX_DATASET := $(shell find "$(DATASETS_DIR)" -type f -name "$(DATASET_BASENAME)_*$(DATASET_FILE_EXT)" | \
     sed 's|.*_\([0-9]*\)\$(DATASET_FILE_EXT)|\1|' | \
     sort -n | tail -1)
@@ -38,6 +46,11 @@ CURRENT_IDX_MASK := $(shell find "$(MASKS_DIR)" -type f -name "$(MASKS_BASENAME)
 	sort -n | tail -1)
 NEXT_IDX_MASK = $(shell echo $$(($(CURRENT_IDX_MASK) + 1)))
 
+CURRENT_IDX_OPTIM := $(shell find "$(OPTIM_DIR)" -type f -name "$(STUDY_BASENAME)_*$(STUDY_FILE_EXT)" | \
+	sed 's|.*_\([0-9]*\)\$(STUDY_FILE_EXT)|\1|' | \
+	sort -n | tail -1)
+NEXT_IDX_OPTIM = $(shell echo $$(($(CURRENT_IDX_OPTIM) + 1)))
+
 CURRENT_DATASET_PATH := $(DATASETS_DIR)/$(DATASET_BASENAME)_$(CURRENT_IDX_DATASET)$(DATASET_FILE_EXT)
 NEXT_DATASET_PATH := $(DATASETS_DIR)/$(DATASET_BASENAME)_$(NEXT_IDX_DATASET)$(DATASET_FILE_EXT)
 
@@ -50,10 +63,17 @@ NEXT_WEIGHTS_PATH := $(WEIGHTS_DIR)/$(WEIGHTS_BASENAME)_$(NEXT_IDX_RESULT)$(WEIG
 CURRENT_MASK_PATH := $(MASKS_DIR)/$(MASKS_BASENAME)_$(CURRENT_IDX_MASK)$(MASKS_FILE_EXT)
 NEXT_MASK_PATH := $(MASKS_DIR)/$(MASKS_BASENAME)_$(NEXT_IDX_MASK)$(MASKS_FILE_EXT)
 
+CURRENT_OPTIM_PATH := $(OPTIM_DIR)/$(OPTIM_BASENAME)_$(CURRENT_IDX_OPTIM)$(OPTIM_FILE_EXT)
+NEXT_OPTIM_PATH := $(OPTIM_DIR)/$(OPTIM_BASENAME)_$(NEXT_IDX_OPTIM)$(OPTIM_FILE_EXT)
+CURRENT_STUDY_PATH := $(OPTIM_DIR)/$(STUDY_BASENAME)_$(CURRENT_IDX_OPTIM)$(STUDY_FILE_EXT)
+NEXT_STUDY_PATH := $(OPTIM_DIR)/$(STUDY_BASENAME)_$(NEXT_IDX_OPTIM)$(STUDY_FILE_EXT)
+
 PATHS_FILE := $(SRC_DIR)/paths.json
 PARAMS_FILE := $(SRC_DIR)/params.json
+OPTIM_PARAMS_FILE := $(SRC_DIR)/optim_params.json
+OPTIM_PARAMS_FILE1 := $(SRC_DIR)/optim_params1.json
 
-.PHONY: config train test
+.PHONY: config train test optim optim1
 
 config:
 	@echo "Storing paths to json..."
@@ -65,7 +85,11 @@ config:
 	@echo "	\"current_weights_path\": \"$(CURRENT_WEIGHTS_PATH)\"," >> $(PATHS_FILE)
 	@echo "	\"next_weights_path\": \"$(NEXT_WEIGHTS_PATH)\"," >> $(PATHS_FILE)
 	@echo "	\"current_mask_path\": \"$(CURRENT_MASK_PATH)\"," >> $(PATHS_FILE)
-	@echo "	\"next_mask_path\": \"$(NEXT_MASK_PATH)\"" >> $(PATHS_FILE)
+	@echo "	\"next_mask_path\": \"$(NEXT_MASK_PATH)\"," >> $(PATHS_FILE)
+	@echo "	\"current_optim_path\": \"$(CURRENT_OPTIM_PATH)\"," >> $(PATHS_FILE)
+	@echo "	\"next_optim_path\": \"$(NEXT_OPTIM_PATH)\"," >> $(PATHS_FILE)
+	@echo "	\"current_study_path\": \"$(CURRENT_STUDY_PATH)\"," >> $(PATHS_FILE)
+	@echo "	\"next_study_path\": \"$(NEXT_STUDY_PATH)\"" >> $(PATHS_FILE)
 	@echo "}" >> $(PATHS_FILE)
 
 mask: config
@@ -74,6 +98,14 @@ mask: config
 
 train: config
 	$(PYTHON) $(SRC_DIR)/train.py --paths $(PATHS_FILE) --params $(PARAMS_FILE)
+
+optim: config
+	@echo "Optimizing parameters..."
+	$(PYTHON) $(SRC_DIR)/params_optimization.py --paths $(PATHS_FILE) --params $(OPTIM_PARAMS_FILE)
+
+optim1: config
+	@echo "Optimizing parameters with lambda scheduler..."
+	$(PYTHON) $(SRC_DIR)/params_optimization1.py --paths $(PATHS_FILE) --params $(OPTIM_PARAMS_FILE1)
 
 test:
 	$(PYTHON) -m unittest discover -s $(TEST_DIR) -p "*.py"
