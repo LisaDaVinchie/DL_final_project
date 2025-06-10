@@ -78,7 +78,8 @@ class UNet(nn.Module):
         self.dec14 = DecoderLayer(in_filters=self.d_filters[4] + self.e_filters[2], out_filters=self.d_filters[5], kernel_size=self.d_kernels[5], bn=self.d_bn[5], leaky_relu=True)
         self.dec15 = DecoderLayer(in_filters=self.d_filters[5] + self.e_filters[1], out_filters=self.d_filters[6], kernel_size=self.d_kernels[6], bn=self.d_bn[6], leaky_relu=True)
         self.dec16 = DecoderLayer(in_filters=self.d_filters[6] + self.e_filters[0], out_filters=self.d_filters[7], kernel_size=self.d_kernels[7], bn=self.d_bn[7], leaky_relu=True)
-        self.output = nn.Conv2d(self.d_filters[8], self.d_filters[8], kernel_size=self.d_kernels[8])
+        # self.output = nn.Conv2d(self.d_filters[8], self.d_filters[8], kernel_size=self.d_kernels[8])
+        self.output = PartialConv2d(self.d_filters[8], self.d_filters[8], kernel_size=self.d_kernels[8])
         
         self.sigmoid = nn.Sigmoid()
         
@@ -101,7 +102,7 @@ class UNet(nn.Module):
         x15, mask15 = self.dec15(x14, mask14, x1, mask1)
         x16, mask16 = self.dec16(x15, mask15, x, mask)
         
-        x = self.output(x16)
+        x, self.output_mask = self.output(x16, mask16)
         x = self.sigmoid(x)
         
         return x
@@ -137,10 +138,10 @@ class UNetLite(nn.Module):
         if self.model_params is None:
             self.e_filters = [3, 32, 32, 64, 64, 128, 128, 256, 256]
             self.d_filters = [256, 128, 128, 64, 64, 32, 32, 3, 3]
-            self.e_kernels = [3, 3, 3, 3, 3, 3, 3, 3]
-            self.d_kernels = [3, 3, 3, 3, 3, 3, 3, 3, 1]
+            self.e_kernels = [3] * 8
+            self.d_kernels = [3] * 8 + [1]
             self.e_bn = [False, True, False, True, False, True, False, True]
-            self.d_bn = [False, True, True, True, True, True, True, False]
+            self.d_bn = [False] * 8
             self.e_strides = [1, 2, 1, 2, 1, 2, 1, 2]
             
         self.enc1 = EncoderLayer(in_filters=self.e_filters[0], out_filters=self.e_filters[1], kernel_size=self.e_kernels[0], stride=self.e_strides[0], bn=self.e_bn[0])
@@ -160,7 +161,7 @@ class UNetLite(nn.Module):
         self.dec14 = EncoderLayer(in_filters=self.d_filters[4], out_filters=self.d_filters[5], kernel_size=self.d_kernels[5], stride=1, bn=self.d_bn[5])
         self.dec15 = DecoderLayer(in_filters=self.d_filters[5] + self.e_filters[1], out_filters=self.d_filters[6], kernel_size=self.d_kernels[6], bn=self.d_bn[6])
         self.dec16 = EncoderLayer(in_filters=self.d_filters[6], out_filters=self.d_filters[7], kernel_size=self.d_kernels[7], stride=1, bn=self.d_bn[7])
-        self.output = nn.Conv2d(self.d_filters[8], self.d_filters[8], kernel_size=self.d_kernels[8], padding="same")
+        self.output = PartialConv2d(self.d_filters[8], self.d_filters[8], kernel_size=self.d_kernels[8], padding="same")
         
         self.sigmoid = nn.Sigmoid()
         
@@ -200,7 +201,7 @@ class UNetLite(nn.Module):
         x16, mask16 = self.dec16(x15, mask15)
         self._print_shape("After dec16", x16)
         
-        x = self.output(x16)
+        x, self.output_mask = self.output(x16, mask16)
         x = self.sigmoid(x)
         
         return x
@@ -234,8 +235,7 @@ class EncoderLayer(nn.Module):
 
         # Return padding as a tuple: (padding_h, padding_w)
         return (pad_h // 2, pad_w // 2)
-
-        
+          
     def forward(self, x, mask):
         x, mask = self.pconv(x, mask)
         if self.bn:
