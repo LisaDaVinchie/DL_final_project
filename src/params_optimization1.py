@@ -72,6 +72,7 @@ def main():
     model_name = str(training_params["model_name"])
     loss_kind = str(training_params["loss_kind"])
     epochs = int(training_params["epochs"])
+    learning_rate = float(training_params["learning_rate"])
     mask_idx = int(training_params["mask_idx"])
     n_train = int(training_params["n_train"])
     n_test = int(training_params["n_test"])
@@ -100,7 +101,8 @@ def main():
                     trainset = trainset,
                     testset = testset,
                     masks = masks,
-                    epochs = epochs)
+                    epochs = epochs,
+                    learning_rate = learning_rate)
     # Import parameters and paths
     obj.import_params(params)
     obj.import_and_check_paths(paths)
@@ -137,7 +139,7 @@ def main():
         print(f"\nElapsed time: {time() - start_time:.2f} seconds\n", flush=True)
 
 class Objective():
-    def __init__(self, model, loss_function, trainset, testset, masks, epochs):
+    def __init__(self, model, loss_function, trainset, testset, masks, epochs, learning_rate):
         # Load default config
         
         self.model = model
@@ -146,6 +148,7 @@ class Objective():
         self.testset = testset
         self.masks = masks
         self.epochs = epochs
+        self.learning_rate = learning_rate
         
         self.dataloader_cache = {}
         
@@ -156,7 +159,6 @@ class Objective():
         optim_params = params["optimization"]
         self.n_trials = optim_params["n_trials"]
         self.batch_size_values = optim_params["batch_size_values"]
-        self.learning_rate_range = optim_params["learning_rate_range"]
         self.step_size_range = optim_params["step_size_range"]  # Default step size range
         
     def import_and_check_paths(self, paths: Path):
@@ -180,10 +182,9 @@ class Objective():
     def objective(self, trial: optuna.Trial):
         # Suggest hyperparameters
         batch_size = trial.suggest_categorical("batch_size", self.batch_size_values)
-        learning_rate = trial.suggest_float("learning_rate", self.learning_rate_range[0], self.learning_rate_range[1], log=True)
         step_size = trial.suggest_int("step_size", self.step_size_range[0], self.step_size_range[1])
         
-        optimizer = th.optim.Adam(self.model.parameters(), lr=learning_rate)
+        optimizer = th.optim.Adam(self.model.parameters(), lr=self.learning_rate)
         
         lr_lambda = lambda step: 2 ** -(step // step_size)
         scheduler = th.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lr_lambda)
