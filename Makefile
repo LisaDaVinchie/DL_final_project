@@ -72,6 +72,7 @@ PATHS_FILE := $(SRC_DIR)/paths.json
 PARAMS_FILE := $(SRC_DIR)/params.json
 OPTIM_PARAMS_FILE := $(SRC_DIR)/optim_params.json
 OPTIM_PARAMS_FILE1 := $(SRC_DIR)/optim_params1.json
+OPTIM_PARAMS_FILE2 := $(SRC_DIR)/optim_params2.json
 
 .PHONY: config train test optim optim1
 
@@ -106,6 +107,10 @@ optim: config
 optim1: config
 	@echo "Optimizing parameters with lambda scheduler..."
 	$(PYTHON) $(SRC_DIR)/params_optimization1.py --paths $(PATHS_FILE) --params $(OPTIM_PARAMS_FILE1)
+
+optim2: config
+	@echo "Optimizing parameters with step size and learning rate range..."
+	$(PYTHON) $(SRC_DIR)/params_optimization2.py --paths $(PATHS_FILE) --params $(OPTIM_PARAMS_FILE2)
 
 test:
 	$(PYTHON) -m unittest discover -s $(TEST_DIR) -p "*.py"
