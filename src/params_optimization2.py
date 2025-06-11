@@ -95,7 +95,7 @@ def main():
     
     model = select_model(model_name)
     loss_function = select_loss_function(loss_kind)
-    trainset, testset = load_cifar10_data(desired_classes=classes)
+    trainset, testset = load_cifar10_data(desired_classes=classes, n_train=n_train, n_test=n_test)
     masks = th.load(masks_path)
         
     obj = Objective(model=model,
