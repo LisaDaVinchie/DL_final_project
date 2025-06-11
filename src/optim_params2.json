@@ -7,7 +7,7 @@
     "training": {
         "n_train": -1,
         "n_test": -1,
-        "classes": [],
+        "classes": [2],
         "batch_size": 32,
         "epochs": 20,
         "learning_rate": 0.0001,
