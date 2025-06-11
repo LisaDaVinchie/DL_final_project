@@ -1,0 +1,73 @@
+{
+    "optimization" :{
+        "n_trials": 100,
+        "step_size_range": [1, 20],
+        "learning_rate_range": [0.00001, 0.01]
+    },
+    "training": {
+        "n_train": -1,
+        "n_test": -1,
+        "classes": [],
+        "batch_size": 32,
+        "epochs": 20,
+        "learning_rate": 0.0001,
+        "loss_kind": "mse",
+        "_possible_loss_kinds": ["mse", "l1"],
+        "optimizer": "Adam",
+        "model_name": "unet_lite",
+        "lr_scheduler": "lambda",
+        "_possible_lr_schedulers": ["none", "step", "lambda"],
+        "_possible_model_names": ["unet", "unet_lite", "dummy", "simple"],
+        "dataset_idx": 1,
+        "mask_idx": 1
+    },
+    "masks": {
+        "n_masks": 1000,
+        "mask_kind": "lines",
+        "_possible_mask_kinds": ["square", "lines"],
+        "square":
+        {
+            "mask_percentage": 0.1
+        },
+        "lines": {
+            "num_lines": 5,
+            "min_thickness": 1,
+            "max_thickness": 3
+        }
+    },
+    "dataset": {
+        "nrows": 32,
+        "ncols": 32
+    },
+    "lr_schedulers": {
+        "step": {
+            "step_size": 4,
+            "gamma": 0.1
+        },
+        "lambda": {
+            "factor": 2,
+            "step_size": 4
+        }
+    },
+    "model": {
+        "unet": {
+            "e_filters": [3, 64, 128, 256, 512, 512, 512, 512, 512],
+            "d_filters": [512, 512, 512, 512, 256, 128, 64, 3, 3],
+            "e_kernels": [3, 3, 3, 3, 3, 3, 3, 3],
+            "d_kernels": [3, 3, 3, 3, 3, 3, 3, 3, 1],
+            "e_bn" : [0, 1, 1, 1, 1, 1, 1, 1],
+            "d_bn" : [1, 1, 1, 1, 1, 1, 1, 0],
+            "e_strides": [2, 2, 2, 2, 2, 2, 2, 2],
+            "d_strides": [2, 2, 2, 2, 2, 2, 2, 2]
+        },
+        "unet_lite": {
+            "e_filters": [3, 32, 32, 64, 64, 128, 128, 256, 256],
+            "d_filters": [256, 128, 128, 64, 64, 32, 32, 3, 3],
+            "e_kernels": [7, 5, 5, 3, 3, 3, 3, 3],
+            "d_kernels": [3, 3, 3, 3, 3, 3, 3, 3, 1],
+            "e_bn" : [0, 1, 0, 1, 0, 1, 0, 1],
+            "e_strides": [1, 2, 1, 2, 1, 2, 1, 2]
+        }
+    }
+
+}
