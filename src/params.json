@@ -41,7 +41,7 @@
         },
         "lambda": {
             "factor": 0.1,
-            "step_size": 10
+            "step_size": 12
         }
     },
     "model": {
