@@ -227,7 +227,7 @@ class TrainModel:
         masks = masks.to(self.device)
         output = self.model(images, masks.float())
         loss = self.loss_function(output, images, masks)
-        intersection, union = dice_coef(images, output, masks)
+        intersection, union = dice_coef(output, images, masks)
         return loss, intersection, union
     
     def save_weights(self):
