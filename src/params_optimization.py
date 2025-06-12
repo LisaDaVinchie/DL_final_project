@@ -1,3 +1,12 @@
+################################################################
+#
+#  Parameter optimization script for CIFAR-10 dataset
+#  Varying learning rate, no lr scheduler.
+#  Keep batch size and epochs fixed
+#
+##################################################################
+
+
 import optuna
 import torch as th
 from optuna.storages import JournalStorage
@@ -12,7 +21,6 @@ import json
 import signal
 import os
 import sys
-
 from import_dataset import create_dataloaders, load_cifar10_data
 
 terminate_early = False
@@ -63,10 +71,9 @@ def main():
     
     training_params = params["training"]
     model_name = str(training_params["model_name"])
-    batch_size = int(training_params["batch_size"])
     loss_kind = str(training_params["loss_kind"])
     epochs = int(training_params["epochs"])
-    learning_rate = float(training_params["learning_rate"])
+    batch_size = int(training_params["batch_size"])
     mask_idx = int(training_params["mask_idx"])
     n_train = int(training_params["n_train"])
     n_test = int(training_params["n_test"])
@@ -77,7 +84,6 @@ def main():
         n_test = None
     if len(classes) == 0:
         classes = None
-    lr_scheduler = str(training_params["lr_scheduler"])
     
     masks_path = masks_dir / f"mask_{mask_idx}.pt"
     
@@ -88,14 +94,16 @@ def main():
     
     model = select_model(model_name)
     loss_function = select_loss_function(loss_kind)
-    trainset, testset = load_cifar10_data(desired_classes=classes)
+    trainset, testset = load_cifar10_data(desired_classes=classes, n_train=n_train, n_test=n_test)
     masks = th.load(masks_path)
         
     obj = Objective(model=model,
                     loss_function=loss_function,
                     trainset = trainset,
                     testset = testset,
-                    masks = masks)
+                    masks = masks,
+                    epochs = epochs,
+                    batch_size = batch_size)
     # Import parameters and paths
     obj.import_params(params)
     obj.import_and_check_paths(paths)
@@ -132,27 +140,28 @@ def main():
         print(f"\nElapsed time: {time() - start_time:.2f} seconds\n", flush=True)
 
 class Objective():
-    def __init__(self, model, loss_function, trainset, testset, masks, lr_scheduler_kind = None):
+    def __init__(self, model, loss_function, trainset, testset, masks, epochs, batch_size):
         # Load default config
         
         self.model = model
         self.loss_function = loss_function
-        self.lr_scheduler = lr_scheduler_kind
         self.trainset = trainset
         self.testset = testset
         self.masks = masks
+        self.epochs = epochs
+        self.batch_size = batch_size
         
         self.dataloader_cache = {}
         
         self.optim_next_path = None
+        
+        self.train_loader, self.test_loader = create_dataloaders(self.trainset, self.testset, self.batch_size)
 
     def import_params(self, params: dict):
         self.params = params
         optim_params = params["optimization"]
         self.n_trials = optim_params["n_trials"]
-        self.batch_size_values = optim_params["batch_size_values"]
-        self.learning_rate_range = optim_params["learning_rate_range"]
-        self.epochs_range = optim_params["epochs_range"]
+        self.learning_rate_range = optim_params["learning_rate_range"]  # Default learning rate range
         
     def import_and_check_paths(self, paths: Path):
         self.optim_next_path = Path(paths["next_optim_path"])
@@ -174,9 +183,7 @@ class Objective():
         
     def objective(self, trial: optuna.Trial):
         # Suggest hyperparameters
-        batch_size = trial.suggest_categorical("batch_size", self.batch_size_values)
-        learning_rate = trial.suggest_float("learning_rate", self.learning_rate_range[0], self.learning_rate_range[1], log=True)
-        epochs = trial.suggest_int("epochs", self.epochs_range[0], self.epochs_range[1])
+        learning_rate = trial.suggest_float("learning_rate", self.learning_rate_range[0], self.learning_rate_range[1])
         
         optimizer = th.optim.Adam(self.model.parameters(), lr=learning_rate)
         
@@ -187,13 +194,13 @@ class Objective():
                           weights_path="",
                           save_every=10000)
         
-        train_loader, test_loader = create_dataloaders(self.trainset, self.testset, batch_size)
-        
-        train.train(train_loader, test_loader, self.masks, epochs)
+        train.train(self.train_loader, self.test_loader, self.masks, self.epochs)
         
         trial.set_user_attr("train_losses", train.train_losses)
         trial.set_user_attr("test_losses", train.test_losses)
-
+        trial.set_user_attr("train_dice_coefficients", train.train_dice_coef)
+        trial.set_user_attr("test_dice_coefficients", train.test_dice_coef)
+        
         return train.test_losses[-1]  # Optuna minimizes this
     
     def save_optim_specs(self, trial, study: optuna.Study, optim_path: Path = None):
@@ -234,6 +241,14 @@ class Objective():
             f.write("Best trial test losses:\n")
             for i, loss in enumerate(trial.user_attrs["test_losses"]):
                 f.write(f"{loss}\t")
+            f.write("\n\n")
+            f.write("Best train dice coefficient:\n")
+            for dice in trial.user_attrs.get("train_dice_coefficients", []):
+                f.write(f"{dice}\t")
+            f.write("\n\n")
+            f.write("Best test dice coefficient:\n")
+            for dice in trial.user_attrs.get("test_dice_coefficients", []):
+                f.write(f"{dice}\t")
             f.write("\n\n")
             f.write("All trials: \n")
             f.write(json.dumps(all_trials, indent=4))
