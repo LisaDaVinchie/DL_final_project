@@ -2,11 +2,7 @@
     "optimization" :{
         "n_trials": 100,
         "step_size_range": [1, 20],
-<<<<<<< HEAD
-        "learning_rate_range": [0.0001, 0.0001]
-=======
         "learning_rate_range": [0.00001, 0.0001]
->>>>>>> 92c4e51 (Using all classes)
     },
     "training": {
         "n_train": -1,
