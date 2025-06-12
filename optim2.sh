@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=train_model
+#SBATCH --job-name=optim_model
 #SBATCH --output=logs/%j.out
 #SBATCH --error=logs/%j.err
 #SBATCH --time=08:00:00
