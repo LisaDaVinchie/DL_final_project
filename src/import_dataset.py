@@ -3,7 +3,18 @@ import torchvision.transforms as transforms
 from torch.utils.data import Subset
 from torch.utils.data import DataLoader
 
-def load_cifar10_data(normalize=True, n_train = None, n_test = None, desired_classes=None):
+def load_cifar10_data(normalize: bool =True, n_train: int = None, n_test: int = None, desired_classes: list=None) -> tuple:
+    """Import the CIFAR-10 dataset and return the training and test datasets.
+
+    Args:
+        normalize (bool, optional): normalize, obtaining all values in the range [-1, 1]. Defaults to True.
+        n_train (int, optional): number of training images, if None include them all. Defaults to None.
+        n_test (int, optional): number of validation images, if None include them all. Defaults to None.
+        desired_classes (list, optional): list of classes to include, if None include them all. Defaults to None.
+
+    Returns:
+        tuple: A tuple containing the training and test datasets.
+    """
     # Define the transformation: convert images to tensors and normalize
     if normalize:
         transform = transforms.Compose([
