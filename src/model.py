@@ -161,7 +161,8 @@ class UNetLite(nn.Module):
         self.dec14 = EncoderLayer(in_filters=self.d_filters[4], out_filters=self.d_filters[5], kernel_size=self.d_kernels[5], stride=1, bn=self.d_bn[5])
         self.dec15 = DecoderLayer(in_filters=self.d_filters[5] + self.e_filters[1], out_filters=self.d_filters[6], kernel_size=self.d_kernels[6], bn=self.d_bn[6])
         self.dec16 = EncoderLayer(in_filters=self.d_filters[6], out_filters=self.d_filters[7], kernel_size=self.d_kernels[7], stride=1, bn=self.d_bn[7])
-        self.output = PartialConv2d(self.d_filters[8], self.d_filters[8], kernel_size=self.d_kernels[8], padding="same")
+        # self.output = PartialConv2d(self.d_filters[8], self.d_filters[8], kernel_size=self.d_kernels[8], padding="same")
+        self.output = nn.Conv2d(self.d_filters[8], self.d_filters[8], kernel_size=self.d_kernels[8], padding="same")
         
         self.sigmoid = nn.Sigmoid()
         
