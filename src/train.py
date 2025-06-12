@@ -81,7 +81,7 @@ def main():
     if lr_scheduler == "lambda":
         factor = float(schedulers_params[lr_scheduler]["factor"])
         step_size = int(schedulers_params[lr_scheduler]["step_size"])
-        lr_lambda = lambda step: factor ** -(step // step_size)
+        lr_lambda = lambda step: factor ** (step // step_size)
         scheduler = optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lr_lambda)
     elif lr_scheduler == "step":
         step_size = int(schedulers_params[lr_scheduler]["step_size"])
