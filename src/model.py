@@ -202,7 +202,9 @@ class UNetLite(nn.Module):
         x16, mask16 = self.dec16(x15, mask15)
         self._print_shape("After dec16", x16)
         
-        x, self.output_mask = self.output(x16, mask16)
+        # x, self.output_mask = self.output(x16, mask16)
+        self.output_mask = mask16  # No mask in the output layer for UNetLite
+        x = self.output(x16)
         x = self.sigmoid(x)
         
         return x
