@@ -97,7 +97,7 @@ def main():
                       weights_path = weights_path,
                       lr_scheduler=scheduler)
     
-    trainset, testset = load_cifar10_data(normalize=True, n_train = n_train, n_test = n_test, desired_classes=[0])
+    trainset, testset = load_cifar10_data(normalize=True, n_train = n_train, n_test = n_test)
     
     print(f"Training on {len(trainset)} images, testing on {len(testset)} images", flush=True)
     
