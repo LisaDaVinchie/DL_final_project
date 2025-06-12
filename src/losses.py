@@ -26,22 +26,25 @@ class PerPixelMSE(nn.Module):
         """Initialize the Per Pixel MSE loss module."""
         super(PerPixelMSE, self).__init__()
     
-    def forward(self, prediction: th.Tensor, target: th.Tensor, masks: th.Tensor) -> th.Tensor:
+    def forward(self, prediction: th.Tensor, target: th.Tensor, masks: th.Tensor, norm: bool = False) -> th.Tensor:
         """Calculate the per-pixel loss between the prediction and the target on masked pixels.
 
         Args:
             prediction (th.Tensor): output of the model, shape (batch_size, channels, height, width)
             target (th.Tensor): ground truth, shape (batch_size, channels, height, width)
-            masks (th.Tensor): binary mask with 0 where the pixel is masked, shape (batch_size, channels, height, width).
-            The loss is calculated on the masked (0) pixels.
+            masks (th.Tensor): binary mask with 0 where the MSE must be calculated, shape (batch_size, channels, height, width).
 
         Returns:
-            th.Tensor: per-pixel loss
+            th.Tensor: per-pixel MSE loss, non normalized
         """
         
-        diff = (prediction - target) ** 2 # Calculate the squared difference, for each pixel
-        masked_diff = diff.masked_fill(masks, 0.0) # Set the masked pixels to 0 where the mask is 1, i.e. where the pixel is not masked
-        return masked_diff.sum()
+        # Calculate the squared difference, for each pixel
+        diff = (prediction - target) ** 2
+        
+        # Set the masked pixels to 0 where the mask is 1, i.e. where the pixel is not masked
+        masked_diff = diff.masked_fill(masks, 0.0)
+        sum = masked_diff.sum()
+        return sum if not norm else sum / calculate_valid_pixels(masks)  # Return the sum of the squared differences over the number of valid pixels
 
 class PerPixelL1(nn.Module):
     def __init__(self):
@@ -73,7 +76,7 @@ def calculate_valid_pixels(masks: th.Tensor) -> int:
     Returns:
         int: Number of valid pixels.
     """
-    return (~masks).sum().float()
+    return (~masks).float().sum()
     
 def dice_coef(prediction: th.Tensor, target: th.Tensor, mask: th.Tensor):
     inv_mask = (~mask).float()  # Invert the mask to get the pixels that are not masked
