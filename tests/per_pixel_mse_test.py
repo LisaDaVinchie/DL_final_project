@@ -40,6 +40,22 @@ class TestPerPixelLoss(unittest.TestCase):
         # Mean loss: (0.0 + 9.0) = 9.0
         expected_loss = th.tensor(9.0)
         self.assertTrue(th.allclose(loss, expected_loss))
+        
+    def test_values_under_mask_invariance(self):
+        """Test case where some pixels are masked."""
+        prediction = th.tensor([[[[1.0, 2.0],
+                                  [3.0, 4.0]]]])
+        target = th.tensor([[[[1.0, 1.0],
+                              [1.0, 1.0]]]])
+        prediction1 = th.tensor([[[[1.0, 2.0],
+                                   [3.0, 4.0]]]])
+        target1 = th.tensor([[[[1.0, 100.0],
+                               [100.0, 1.0]]]])
+        mask = th.tensor([[[[0.0, 1.0],
+                            [1.0, 0.0]]]], dtype = th.bool)  # Mask some pixels
+        loss = self.loss_function(prediction, target, mask)
+        loss1 = self.loss_function(prediction1, target1, mask)
+        self.assertTrue(th.allclose(loss, loss1))
 
     def test_random_inputs(self):
         """Test case with random inputs."""
