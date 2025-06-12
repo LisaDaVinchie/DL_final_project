@@ -4,7 +4,7 @@
         "n_test": -1,
         "classes": [],
         "batch_size": 32,
-        "epochs": 40,
+        "epochs": 80,
         "learning_rate": 0.0002,
         "loss_kind": "mse",
         "_possible_loss_kinds": ["mse", "l1"],
