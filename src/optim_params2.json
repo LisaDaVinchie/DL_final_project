@@ -2,14 +2,14 @@
     "optimization" :{
         "n_trials": 100,
         "step_size_range": [1, 20],
-        "learning_rate_range": [0.00001, 0.01]
+        "learning_rate_range": [0.0001, 0.0001]
     },
     "training": {
         "n_train": -1,
         "n_test": -1,
         "classes": [2],
         "batch_size": 32,
-        "epochs": 20,
+        "epochs": 40,
         "learning_rate": 0.0001,
         "loss_kind": "mse",
         "_possible_loss_kinds": ["mse", "l1"],
