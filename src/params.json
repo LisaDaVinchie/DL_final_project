@@ -5,7 +5,7 @@
         "classes": [],
         "batch_size": 32,
         "epochs": 80,
-        "learning_rate": 0.0001,
+        "learning_rate": 0.0002,
         "loss_kind": "mse",
         "_possible_loss_kinds": ["mse", "l1"],
         "optimizer": "Adam",
@@ -40,8 +40,8 @@
             "gamma": 0.1
         },
         "lambda": {
-            "factor": 2,
-            "step_size": 12
+            "factor": 0.1,
+            "step_size": 10
         }
     },
     "model": {
