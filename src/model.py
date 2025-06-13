@@ -314,26 +314,6 @@ class DummyModel(nn.Module):
 
         return out.requires_grad_(True)  # Ensure the output tensor requires gradient for training
 
-class DummierModel(nn.Module):
-    def __init__(self):
-        """Model that substitutes the missing pixels with a number."""
-        super(DummierModel, self).__init__()
-        
-        # Dummy layer to match the interface of nn.Module
-        self.layer = nn.Conv2d(3, 3, kernel_size=1, padding=0)
-    
-    def forward(self, x: th.Tensor, mask: th.Tensor) -> th.Tensor:
-        """
-        Args:
-            x (th.Tensor): (B, C, H, W)
-            mask (th.Tensor): (B, 1, H, W), where True means keep value, False means fill with channel-wise mean
-
-        Returns:
-            th.Tensor: tensor with masked-out values replaced by channel-wise mean of unmasked values
-        """
-        out = th.ones_like(x) * 0.5
-
-        return out.requires_grad_(True)  # Ensure the output tensor requires gradient for training
 class SimpleModel(nn.Module):
     def __init__(self):
         """Simple model using PartialConv2d for testing purposes."""
