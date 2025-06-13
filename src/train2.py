@@ -226,7 +226,7 @@ class TrainModel:
         images = images.to(self.device)
         masks = masks.to(self.device)
         output = self.model(images * masks.float(), masks.float())
-        output = self.model(images * masks.float(), masks.float())
+        images = images * 0.5 + 0.5  # Normalize images to [0, 1] range
         loss = self.loss_function(output, images, masks)
         intersection, union = dice_coef(output, images, masks)
         return loss, intersection, union
