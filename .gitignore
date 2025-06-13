@@ -5,7 +5,9 @@
 *.ipynb
 
 # Dataset
-data/
+data/*
+!data/results/
+!data/weights/
 
 # Paths
 src/paths.json
