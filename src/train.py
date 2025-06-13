@@ -97,7 +97,7 @@ def main():
                       weights_path = weights_path,
                       lr_scheduler=scheduler)
     
-    trainset, testset = load_cifar10_data(normalize=True, n_train = n_train, n_test = n_test)
+    trainset, testset = load_cifar10_data(normalize=True, n_train = n_train, n_test = n_test, desired_classes=[0])
     
     print(f"Training on {len(trainset)} images, testing on {len(testset)} images", flush=True)
     
@@ -225,7 +225,7 @@ class TrainModel:
     def _compute_loss(self, images, masks):
         images = images.to(self.device)
         masks = masks.to(self.device)
-        output = self.model(images, masks.float())
+        output = self.model(images * masks.float(), masks.float())
         images = images * 0.5 + 0.5  # Normalize images to [0, 1] range
         loss = self.loss_function(output, images, masks)
         intersection, union = dice_coef(output, images, masks)
