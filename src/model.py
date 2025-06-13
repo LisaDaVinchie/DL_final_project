@@ -21,8 +21,6 @@ def select_model(model_name: str) -> nn.Module:
         return DummyModel()
     elif model_name == "simple":
         return SimpleModel()
-    elif model_name == "dummier":
-        return DummierModel()
     else:
         raise ValueError(f"Unknown model name: {model_name}")
 class UNet(nn.Module):
