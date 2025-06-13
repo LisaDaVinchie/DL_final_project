@@ -74,7 +74,7 @@ OPTIM_PARAMS_FILE := $(SRC_DIR)/optim_params.json
 OPTIM_PARAMS_FILE1 := $(SRC_DIR)/optim_params1.json
 OPTIM_PARAMS_FILE2 := $(SRC_DIR)/optim_params2.json
 
-.PHONY: config train train2 test optim optim1
+.PHONY: config train test optim optim1
 
 config:
 	@echo "Storing paths to json..."
@@ -99,9 +99,6 @@ mask: config
 
 train: config
 	$(PYTHON) $(SRC_DIR)/train.py --paths $(PATHS_FILE) --params $(PARAMS_FILE)
-
-train2: config
-	$(PYTHON) $(SRC_DIR)/train2.py --paths $(PATHS_FILE) --params $(PARAMS_FILE)
 
 optim: config
 	@echo "Optimizing parameters..."
