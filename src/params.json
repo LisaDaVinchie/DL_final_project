@@ -40,8 +40,8 @@
             "gamma": 0.1
         },
         "lambda": {
-            "factor": 0.5,
-            "step_size": 20
+            "factor": 0.1,
+            "step_size": 10
         }
     },
     "model": {
