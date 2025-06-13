@@ -9,9 +9,6 @@ data/*
 # Paths
 src/paths.json
 
-# Result import command
-transfer.sh
-
 # Bot codes
 bot_codes.txt
 
