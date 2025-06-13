@@ -1,9 +1,6 @@
 # The virtual environment directory
 *venv*
 
-# Jupyter notebooks
-*.ipynb
-
 # Dataset
 data/*
 !data/results/
@@ -17,9 +14,6 @@ transfer.sh
 
 # Bot codes
 bot_codes.txt
-
-# Log files
-logs/
 
 # OS generated files
 **/.DS_Store
